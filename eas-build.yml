@@ -1,0 +1,19 @@
+name: EAS Build
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - run: npm ci
+      - run: npm install -g eas-cli
+      - run: eas build --platform all --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: f6iRfBjhLRi-uO2FzC6mBiDHxTptZOYFr3P_GZww
