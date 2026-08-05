@@ -2,9 +2,9 @@
   "expo": {
     "name": "Rabin Photography",
     "slug": "rabin-photography-app",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/rabins-logo.png",
     "scheme": "rabinapp",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
@@ -16,19 +16,17 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/rabins-logo.png"
       },
       "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false,
       "package": "com.sudip004.client",
-      "versionCode": 3,
+      "versionCode": 4,
       "softwareKeyboardLayoutMode": "resize",
       "statusBar": {
         "barStyle": "light-content",
-        "backgroundColor": "#1a1a1a",
+        "backgroundColor": "#1A0D0E",
         "translucent": false
       }
     },
@@ -50,14 +48,18 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "cd214cf6-447f-412e-8c41-aa1b1a739aff"
+      }
     }
   }
 }
