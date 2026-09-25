@@ -1,6 +1,13 @@
+// All fonts use system default (Roboto on Android, SF Pro on iOS)
+// fontFamily: undefined = system font
+// Use fontWeight in styles to control bold/regular
 export const fonts = {
-  heading: 'CormorantGaramond_700Bold',
-  subheading: 'Cinzel_600SemiBold',
-  body: 'Cinzel_400Regular',
-  text:"DM_sans_400Regular"
+  heading: undefined,
+  subheading: undefined,
+  body: undefined,
+  text: undefined,
+  cursive: 'DancingScript_700Bold', // only for cursive title
+  medium: undefined,
+  bold: undefined,
+  regular: undefined,
 };

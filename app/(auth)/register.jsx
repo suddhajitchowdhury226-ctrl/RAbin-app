@@ -7,6 +7,7 @@ import { useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import AuthInput from "../../components/Authvalidate/AuthInput";
 import { fonts } from "../../constants/fonts";
+import useGoogleAuth from "../../hooks/useGoogleAuth";
 import { authApi, storeToken, storeUser } from "../../services/api";
 
 export default function Register() {
@@ -25,6 +27,12 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [secure, setSecure] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  // ── Google Sign-In ────────────────────────────────────────────────
+  const { promptAsync: googlePrompt, loading: googleLoading } = useGoogleAuth({
+    onSuccess: () => router.replace("/dashboard"),
+    onError: (msg) => Alert.alert("Google Sign-In failed", msg),
+  });
 
   const validate = () => {
     if (!name.trim()) {
@@ -53,7 +61,7 @@ export default function Register() {
       const data = await authApi.register({ name, email, password });
       await storeToken(data.accessToken);
       await storeUser(data.user);
-      router.replace("/");
+      router.replace("/dashboard");
     } catch (err) {
       Alert.alert("Registration failed", err.message || "Please try again");
     } finally {
@@ -65,10 +73,6 @@ export default function Register() {
     Alert.alert("Google SignUp Clicked");
   };
 
-  const handleFacebook = () => {
-    Alert.alert("Facebook SignUp Clicked");
-  };
-
   return (
     <ScreenWrapper scroll={true}>
       <StatusBar style="light" />
@@ -76,9 +80,11 @@ export default function Register() {
       <ScrollView contentContainerStyle={styles.container}>
 
         {/* Logo */}
-        <View style={styles.logoBox}>
-          <Feather name="camera" size={30} color="black" />
-        </View>
+        <Image
+          source={require('../../assets/images/rabins-logo.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
 
         {/* Title */}
         <Text style={styles.title}>Create Account</Text>
@@ -142,22 +148,19 @@ export default function Register() {
 
         {/* Google */}
         <TouchableOpacity
-          style={styles.socialButton}
-          onPress={handleGoogle}
+          style={[styles.socialButton, styles.googleButton]}
+          onPress={() => googlePrompt()}
+          disabled={googleLoading || loading}
           activeOpacity={0.8}
         >
-          <Feather name="chrome" size={18} color="white" />
-          <Text style={styles.socialText}>Continue with Google</Text>
-        </TouchableOpacity>
-
-        {/* Facebook */}
-        <TouchableOpacity
-          style={styles.socialButton}
-          onPress={handleFacebook}
-          activeOpacity={0.8}
-        >
-          <Feather name="facebook" size={18} color="white" />
-          <Text style={styles.socialText}>Continue with Facebook</Text>
+          {googleLoading ? (
+            <ActivityIndicator size="small" color="white" />
+          ) : (
+            <>
+              <Feather name="chrome" size={18} color="white" />
+              <Text style={styles.socialText}>Continue with Google</Text>
+            </>
+          )}
         </TouchableOpacity>
 
         {/* Bottom */}
@@ -184,13 +187,10 @@ const styles = StyleSheet.create({
     paddingTop: 28,
   },
 
-  logoBox: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: "white",
-    alignItems: "center",
-    justifyContent: "center",
+  logoImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     alignSelf: "center",
     marginBottom: 24,
   },
@@ -255,13 +255,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "rgba(255,255,255,0.08)",
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
     marginTop: 12,
   },
-
+  googleButton: {
+    borderColor: "rgba(66,133,244,0.4)",
+    backgroundColor: "rgba(66,133,244,0.1)",
+  },
   socialText: {
     color: "white",
     fontFamily: fonts.subheading,

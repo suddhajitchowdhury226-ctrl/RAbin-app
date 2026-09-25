@@ -1,114 +1,137 @@
 import Footer from "@/components/Footer/FooterScreen";
+import { PageWrapper } from "@/components/PageLoader";
+import AppHeader from "@/components/AppHeader/AppHeader";
 import { colors } from "@/constants/colors";
 import { fonts } from "@/constants/fonts";
-import { spacing } from "@/constants/spacing";
+import { rf, rh, rs } from "@/constants/rs";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
-    Image,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
 
 const Services = () => {
-  const handleOpenDetails = ({ image, title, badge }) => {
+  const handleOpenDetails = ({ image, title, badge, slug }) => {
     router.push({
       pathname: "/details/servicedetails",
       params: {
         image,
         title,
         badge: badge ?? "",
+        slug: slug ?? "",
       },
     });
   };
+
+  const [activeCategory, setActiveCategory] = useState("ALL");
+  const [servicesData, setServicesData] = useState([]);
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const apiUrl =
+        process.env.EXPO_PUBLIC_API_URL ||
+        "https://app-server-maaw.onrender.com/api/v1";
+      const res = await fetch(`${apiUrl}/services`);
+      const data = await res.json();
+      if (data.success && data.data) setServicesData(data.data);
+    } catch (err) {}
+  }, []);
+
+  React.useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
+  useAutoRefresh(fetchServices);
+
+  const filteredServices =
+    activeCategory === "ALL"
+      ? servicesData
+      : servicesData.filter((s) => s.category === activeCategory.toUpperCase());
 
   return (
     <>
       <StatusBar style="light" backgroundColor={colors.serviceheader} />
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => { router.back() }}>
-            <Feather name="chevron-left" size={25} color={"#F5515F"} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Services</Text>
-        </View>
-        <Feather name="filter" size={20} color={"#F5515F"} />
-      </View>
+      <AppHeader
+        title="Services"
+        onBack={() => router.back()}
+        bgColor={colors.serviceheader}
+      />
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-
         {/* CATEGORY PILLS */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: spacing.lg ,backgroundColor:"#171a1f", paddingHorizontal:spacing.md,paddingVertical:spacing.md,marginTop:-1,width:"100%"}}
+          style={{
+            marginBottom: rs(24),
+            backgroundColor: "#171a1f",
+            paddingHorizontal: rs(16),
+            paddingVertical: rs(16),
+            marginTop: -1,
+            width: "100%",
+          }}
         >
-          <Category label="Wedding" active />
-          <Category label="Portrait" />
-          <Category label="Event" />
-          <Category label="Corporate" />
+          {["ALL", "WEDDING", "PORTRAIT", "EVENT", "CORPORATE", "OTHER"].map(
+            (cat) => (
+              <Category
+                key={cat}
+                label={
+                  cat === "ALL"
+                    ? "All"
+                    : cat.charAt(0) + cat.slice(1).toLowerCase()
+                }
+                active={activeCategory === cat}
+                onPress={() => setActiveCategory(cat)}
+              />
+            ),
+          )}
         </ScrollView>
 
         {/* GRID */}
         <View style={styles.grid}>
-          <ServiceCard
-            image="https://images.unsplash.com/photo-1519741497674-611481863552"
-            title="Elegant Wedding Photography"
-            badge="Popular"
-            onPress={() =>
-              handleOpenDetails({
-                image: "https://images.unsplash.com/photo-1519741497674-611481863552",
-                title: "Elegant Wedding Photography",
-                badge: "Popular",
-              })
-            }
-          />
-
-          <ServiceCard
-            image="https://images.unsplash.com/photo-1524504388940-b1c1722653e1"
-            title="Professional Portrait Sessions"
-            onPress={() =>
-              handleOpenDetails({
-                image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1",
-                title: "Professional Portrait Sessions",
-                badge: "",
-              })
-            }
-          />
-
-          <ServiceCard
-            image="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91"
-            title="Corporate Event Coverage"
-            badge="New"
-            onPress={() =>
-              handleOpenDetails({
-                image: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91",
-                title: "Corporate Event Coverage",
-                badge: "New",
-              })
-            }
-          />
-
-          <ServiceCard
-            image="https://images.unsplash.com/photo-1492724441997-5dc865305da7"
-            title="Product & Fashion Shoots"
-            onPress={() =>
-              handleOpenDetails({
-                image: "https://images.unsplash.com/photo-1492724441997-5dc865305da7",
-                title: "Product & Fashion Shoots",
-                badge: "",
-              })
-            }
-          />
-
-
+          {filteredServices.map((s) => (
+            <ServiceCard
+              key={s._id}
+              image={
+                s.coverImage ||
+                "https://images.unsplash.com/photo-1519741497674-611481863552"
+              }
+              title={s.title}
+              badge={s.badge || ""}
+              onPress={() =>
+                handleOpenDetails({
+                  image:
+                    s.coverImage ||
+                    "https://images.unsplash.com/photo-1519741497674-611481863552",
+                  title: s.title,
+                  badge: s.badge || "",
+                  slug: s.slug || "",
+                })
+              }
+            />
+          ))}
+          {filteredServices.length === 0 && (
+            <Text
+              style={{
+                color: "#888",
+                marginTop: 20,
+                textAlign: "center",
+                width: "100%",
+              }}
+            >
+              {servicesData.length === 0
+                ? "No services available yet."
+                : "No services in this category."}
+            </Text>
+          )}
         </View>
       </ScrollView>
       <Footer active="services" />
@@ -118,26 +141,18 @@ const Services = () => {
 
 export default Services;
 
-const Category = ({ label, active }) => (
+const Category = ({ label, active, onPress }) => (
   <TouchableOpacity
-    style={[
-      styles.category,
-      active && { backgroundColor: "#F5515F" },
-    ]}
+    onPress={onPress}
+    style={[styles.category, active && { backgroundColor: "#F5515F" }]}
   >
-    <Text
-      style={[
-        styles.categoryText,
-        active && { color: "#FFF" },
-      ]}
-    >
+    <Text style={[styles.categoryText, active && { color: "#FFF" }]}>
       {label}
     </Text>
   </TouchableOpacity>
 );
 
 const ServiceCard = ({ image, title, badge, onPress }) => (
-
   <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
     <Image source={{ uri: image }} style={styles.cardImage} />
     <View style={styles.overlay} />
@@ -154,112 +169,69 @@ const ServiceCard = ({ image, title, badge, onPress }) => (
       </Text>
     </View>
   </TouchableOpacity>
-
 );
 
-
 const styles = StyleSheet.create({
-  header: {
-    height: 85,
-    backgroundColor: colors.serviceheader,
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.md,
-    paddingBottom: 10,
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontFamily: fonts.heading,
-    fontSize: 16,
-    color: "#F3F4F6",
-    marginLeft: 12,
-  },
-
-  container: {
-    flex: 1,
-    backgroundColor: "#0a0a0a",
-    padding: 0,
-    width: "100%",
-  },
-
-  /* CATEGORY */
+  container: { flex: 1, backgroundColor: "#0a0a0a", width: "100%" },
   category: {
     backgroundColor: "#262A33",
-    paddingVertical: 9,
-    paddingHorizontal: 18,
-    borderRadius: 20,
-    marginRight: 10,
+    paddingVertical: rs(8),
+    paddingHorizontal: rs(16),
+    borderRadius: rs(20),
+    marginRight: rs(10),
   },
   categoryText: {
     fontFamily: fonts.text,
-    fontSize: 15,
+    fontSize: rf(13),
     color: colors.white,
   },
-
-  /* GRID */
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     backgroundColor: "#000000",
-    marginTop: -20,
-    paddingHorizontal: spacing.sm,
-
+    paddingHorizontal: rs(8),
+    paddingTop: rs(4),
   },
-
-  /* CARD */
   card: {
     width: "48%",
-    height: 190,
-    borderRadius: 18,
+    height: rh(175),
+    borderRadius: rs(16),
     overflow: "hidden",
-    marginBottom: spacing.md,
+    marginBottom: rs(14),
     backgroundColor: "#111c29",
-    marginTop:18,
-    boxShadow: "0 12px 28px rgba(0, 0, 0, 0.8)",
-    elevation: 12,
+    marginTop: rs(14),
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: rs(8),
   },
   cardImage: {
+    ...StyleSheet.absoluteFillObject,
     width: "100%",
     height: "100%",
-    position: "absolute",
+    resizeMode: "cover",
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.4)",
-    boxShadow: "inset 0 0 20px rgba(0,0,0,0.6)",
   },
   cardContent: {
     position: "absolute",
-    bottom: 12,
-    left: 12,
-    right: 12,
+    bottom: rs(10),
+    left: rs(10),
+    right: rs(10),
   },
-  cardTitle: {
-    fontFamily: fonts.text,
-    fontSize: 14,
-    color: colors.white,
-  },
-
-  /* BADGE */
+  cardTitle: { fontFamily: fonts.text, fontSize: rf(13), color: colors.white },
   badge: {
     position: "absolute",
-    top: 10,
-    right: 10,
+    top: rs(8),
+    right: rs(8),
     backgroundColor: "#FF8E3C",
-    paddingHorizontal: 13,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingHorizontal: rs(10),
+    paddingVertical: rs(4),
+    borderRadius: rs(10),
   },
-  badgeText: {
-    fontSize: 13,
-    fontFamily: fonts.text,
-    color: "#1f1d1d",
-  },
+  badgeText: { fontSize: rf(11), fontFamily: fonts.text, color: "#1f1d1d" },
 });
-
-

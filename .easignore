@@ -1,0 +1,15 @@
+# EAS Build installs node_modules fresh on build servers
+node_modules/
+
+# Android build artifacts — not needed for EAS cloud builds
+android/app/build/
+android/build/
+android/.gradle/
+android/app/.cxx/
+android/.kotlin/
+
+# Expo cache
+.expo/web/cache/
+
+# Logs
+*.log
