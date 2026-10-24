@@ -155,17 +155,44 @@ export const authApi = {
       body: JSON.stringify({ idToken }),
     }),
 
-  sendOtp: (email) =>
-    request('/auth/send-otp', {
+  sendOtp: (email) => {
+    // ── Demo account bypass (Play Store reviewer) ──────────────────────
+    // No email is sent; the fixed code is 1234.
+    if (email.toLowerCase().trim() === 'demo@rabinsphotography.com') {
+      return Promise.resolve({ message: 'OTP sent' });
+    }
+    // ──────────────────────────────────────────────────────────────────
+    return request('/auth/send-otp', {
       method: 'POST',
       body: JSON.stringify({ email }),
-    }),
+    });
+  },
 
-  verifyOtp: (email, otp) =>
-    request('/auth/verify-otp', {
+  verifyOtp: (email, otp) => {
+    // ── Demo account bypass (Play Store reviewer) ──────────────────────
+    // Fixed code: 1234. Returns a fake token so the app navigates normally.
+    if (
+      email.toLowerCase().trim() === 'demo@rabinsphotography.com' &&
+      otp === '1234'
+    ) {
+      return Promise.resolve({
+        accessToken: 'demo-access-token',
+        refreshToken: 'demo-refresh-token',
+        user: {
+          _id: 'demo-user-id',
+          name: 'Demo User',
+          email: 'demo@rabinsphotography.com',
+          role: 'user',
+          isDemo: true,
+        },
+      });
+    }
+    // ──────────────────────────────────────────────────────────────────
+    return request('/auth/verify-otp', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
-    }),
+    });
+  },
 };
 
 // ─── Services ─────────────────────────────────────────────────────────────────

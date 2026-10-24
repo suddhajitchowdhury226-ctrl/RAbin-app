@@ -26,9 +26,13 @@ const PURPLE_LIGHT = '#A78BFA';
 const BG           = '#0D0614';
 const CARD_TOP     = H * 0.42;
 
+const DEMO_EMAIL = 'demo@rabinsphotography.com';
+const DEMO_CODE  = '1234';
+
 export default function OtpScreen() {
     const router = useRouter();
     const { email } = useLocalSearchParams();
+    const isDemo = email?.toLowerCase().trim() === DEMO_EMAIL;
 
     const [otp, setOtp]                 = useState(["", "", "", ""]);
     const [loading, setLoading]         = useState(false);
@@ -183,8 +187,10 @@ export default function OtpScreen() {
 
                 <Text style={styles.topTitle}>Check your inbox</Text>
                 <Text style={styles.topSub}>
-                    We sent a 4-digit code to{'\n'}
-                    <Text style={styles.emailHighlight}>{email}</Text>
+                    {isDemo
+                        ? <>Use the demo code{'\n'}<Text style={styles.emailHighlight}>{DEMO_CODE}</Text>{' '}to continue</>
+                        : <>We sent a 4-digit code to{'\n'}<Text style={styles.emailHighlight}>{email}</Text></>
+                    }
                 </Text>
             </Animated.View>
 
@@ -198,7 +204,9 @@ export default function OtpScreen() {
                     showsVerticalScrollIndicator={false}
                 >
                     <Text style={styles.cardTitle}>Enter Code</Text>
-                    <Text style={styles.cardSub}>Type the 4-digit code below</Text>
+                    <Text style={styles.cardSub}>
+                        {isDemo ? `Demo code: ${DEMO_CODE}` : 'Type the 4-digit code below'}
+                    </Text>
 
                     {/* OTP boxes */}
                     <Animated.View style={[styles.otpRow, { transform: [{ translateX: shakeX }] }]}>
